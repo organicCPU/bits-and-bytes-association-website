@@ -1,4 +1,4 @@
-![Logo of the project](https://raw.githubusercontent.com/mfalcetta/bits-and-bytes-association-website/master/assets/img/banners/bba-banner-black.png)
+![Logo of the project](https://github.com/mfalcetta/bits-and-bytes-association-website/blob/master/assets/img/banners/bba-banner-black.png?raw=true)
 
 
 # Bits & Bytes Association

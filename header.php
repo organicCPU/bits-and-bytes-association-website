@@ -48,7 +48,7 @@ if(!defined("baseLoaded"))
                     </div>
                 </li>
             </ul>
-            <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
+            <ul class="navbar-nav flex-row d-md-flex nav-fill">
                 <li class="nav-item">
                     <a class="nav-link p-2" href="https://github.com/bits-and-bytes-association/rrc-bba-website" target="_blank" rel="noopener" aria-label="GitHub">
                         <svg class="navbar-nav-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 499.36" focusable="false">

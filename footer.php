@@ -1,11 +1,3 @@
-<?php
-
-if(!defined("baseLoaded"))
-{
-    header("Location: index.php");
-}
-
-?>
 
 <footer>
 <div class="card text-center footer">

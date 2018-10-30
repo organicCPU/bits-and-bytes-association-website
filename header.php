@@ -1,3 +1,12 @@
+<?php
+
+if(!defined("baseLoaded"))
+{
+    header("Location: index.php");
+}
+
+?>
+
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="#" aria-label="Bits & Bytes Association">

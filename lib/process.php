@@ -62,8 +62,8 @@ function findRegistrationStatus($username, $password, $password2, $email, $first
     {
         $result = PASSWORDS_UNMATCH;
     }
-
-    $_SESSION["status_code"] = $result;
+    
+    return $result;
 }
 
 function statusCodeToText($status)

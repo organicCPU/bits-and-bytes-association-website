@@ -70,9 +70,9 @@ function register($username, $password, $password2, $email, $firstname, $lastnam
             }
         }
     }  
-    //echo $constraints;
-
+    
     $_SESSION["status_code"] = $constraints;
+
 }
 ?>
 

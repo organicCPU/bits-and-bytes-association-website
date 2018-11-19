@@ -2,7 +2,8 @@
 
 define("baseLoaded", 1);
 
-require('blog/connect.php');
+require "lib/auth.php";
+require_once "lib/process.php";
 
 function passwordTest()
 {
@@ -19,95 +20,60 @@ function passwordTest()
     //$rows = $statement->fetchAll();
 }
 
-function register($username, $password, $email, $firstname, $lastname)
+if (!empty($_POST)) //sanitize
+{
+    $username = filter_input(INPUT_POST, "username", FILTER_SANITIZE_SPECIAL_CHARS);
+    $password = filter_input(INPUT_POST, "password", FILTER_SANITIZE_SPECIAL_CHARS);
+    $password2 = filter_input(INPUT_POST, "password2", FILTER_SANITIZE_SPECIAL_CHARS);
+    $email = filter_input(INPUT_POST, "email", FILTER_SANITIZE_EMAIL);
+    $firstname = filter_input(INPUT_POST, "firstname", FILTER_SANITIZE_SPECIAL_CHARS);
+    $lastname = filter_input(INPUT_POST, "lastname", FILTER_SANITIZE_SPECIAL_CHARS);
+    
+    register($username, $password, $password2, $email, $firstname, $lastname);
+}
+
+function register($username, $password, $password2, $email, $firstname, $lastname)
 {
     $usergroup = 4;  //should I query the DB for default user group?
     global $db;
 
-    //Additional sanitization required.
+    $constraints = findRegistrationStatus($username, $password, $password2, $email, $firstname, $lastname); //validate
 
-    $username = filter_var($username, FILTER_SANITIZE_SPECIAL_CHARS);
-    $password = filter_var($password, FILTER_SANITIZE_SPECIAL_CHARS); //heh
-    $email = filter_var($email, FILTER_SANITIZE_EMAIL);
-    $firstname = filter_var($firstname, FILTER_SANITIZE_SPECIAL_CHARS);
-    $lastname = filter_var($lastname, FILTER_SANITIZE_SPECIAL_CHARS);
-
-    //Validation required.
-
-    $constraints = (checkConstraints($username, $password, $email, $firstname, $lastname));
-
-    if($constraints == "1")
+    try
     {
-        try
-        {
-            $query = "INSERT INTO `users` (`Username`, `Password`, `Email`, `FirstName`, `LastName`, `Usergroup`) VALUES (:username, :password, :email, :FirstName, :LastName, $usergroup)";
-            $statement = $db->prepare($query);
-            $password = password_hash($password, PASSWORD_BCRYPT);
-            $statement -> bindValue(':username', $username, PDO::PARAM_STR);
-            $statement -> bindValue(':password', $password, PDO::PARAM_STR);
-            $statement -> bindValue(':email', $email, PDO::PARAM_STR);
-            $statement -> bindValue(':FirstName', $firstname, PDO::PARAM_STR);
-            $statement -> bindValue(':LastName', $lastname, PDO::PARAM_STR);
-            $statement -> execute();
+        $query = "INSERT INTO `users` (`Username`, `Password`, `Email`, `FirstName`, `LastName`, `Usergroup`) VALUES (:username, :password, :email, :FirstName, :LastName, $usergroup)";
+        $statement = $db->prepare($query);
+        $password = password_hash($password, PASSWORD_BCRYPT);
+        $statement -> bindValue(':username', $username, PDO::PARAM_STR);
+        $statement -> bindValue(':password', $password, PDO::PARAM_STR);
+        $statement -> bindValue(':email', $email, PDO::PARAM_STR);
+        $statement -> bindValue(':FirstName', $firstname, PDO::PARAM_STR);
+        $statement -> bindValue(':LastName', $lastname, PDO::PARAM_STR);
+        $statement -> execute();
+    }
+    catch (PDOException $e)
+    {
+        //echo 'Caught exception: ',  $e->getMessage(), "\n";
 
-            echo "Registration successful.";
+        //Find violated constraint:
+        if ($e->errorInfo[1] == 1062) //if a UNIQUE constraint was violated
+        {
+            $constraints = substr($e->errorInfo[2], strpos($e->errorInfo[2], "for key", -18) + 9, -1); //might not be able to be attacked in email field
+
+            if($constraints === "Username")
+            {
+                $constraints = UNIQUE_VIOLATION_USERNAME;
+            }
+            else if ($constraints === "Email")
+            {
+                $constraints = UNIQUE_VIOLATION_EMAIL;
+            }
         }
-        catch (PDOException $e)
-        {
-            //echo 'Caught exception: ',  $e->getMessage(), "\n";
-    
-            //Find violated constraint:
-            if ($e->errorInfo[1] == 1062) //if a UNIQUE constraint was violated
-            {
-                $errorString = $e->errorInfo[2];
-                $errorString = substr($errorString, strpos($errorString, "for key", -18) + 9, -1); //might not be able to be attacked in email field
-                echo $errorString;
-            }
-            else
-            {
-                echo "Undefined error occurred.";
-            }
-        }  
-    }
-    else
-    {
-        echo $constraints;
-    }
+    }  
+    //echo $constraints;
+
+    $_SESSION["status_code"] = $constraints;
 }
-
-function checkConstraints($username, $password, $email, $firstname, $lastname)
-{
-    define("USERNAME_MIN_LENGTH", 1);
-    define("USERNAME_MAX_LENGTH", 20);
-    define("PASSWORD_MIN_LENGTH", 6);
-    define("NAME_MIN_LENGTH", 2);
-
-    $result = "1";
-
-    if ((strlen($username) < USERNAME_MIN_LENGTH) || (strlen($username) > USERNAME_MAX_LENGTH))
-    {
-        $result = "Username needs to be between " . USERNAME_MIN_LENGTH . " and " . USERNAME_MAX_LENGTH . " characters.";
-    }
-    else if (strlen($password) < PASSWORD_MIN_LENGTH)
-    {
-        $result = "Password";
-    }
-    else if((filter_var($email, FILTER_VALIDATE_EMAIL)) == false)
-    {
-        $result = "Email";
-    }
-    else if(strlen($firstname) < NAME_MIN_LENGTH)
-    {
-        $result = "First Name";
-    }
-    else if(strlen($lastname) < NAME_MIN_LENGTH)
-    {
-        $result = "Last Name";
-    }
-
-    return $result;
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -120,7 +86,7 @@ function checkConstraints($username, $password, $email, $firstname, $lastname)
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="./assets/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="stylesheet" href="./assets/css/main.css">
-    <title>Hello, world!</title>
+    <title>Registration</title>
 </head>
 <body>
 
@@ -128,7 +94,39 @@ function checkConstraints($username, $password, $email, $firstname, $lastname)
     include("header.php");
 ?>
 
-    <h1>Hello, world!</h1>
+<div class="container">
+
+<h1>Registration</h1>
+<!--Serverside validation only atm-->
+<form action="#" method="post">
+    <div class="form-group">
+        <label for="inputUser">Username:</label>
+        <input type="text" class="form-control" name="username" id="inputUser" aria-describedby="user" placeholder="Username">
+    </div>
+    <div class="form-group">
+    <label for="inputPassword">Password:</label>
+    <input type="password" class="form-control" name="password" id="inputPassword" placeholder="Password">
+  </div>
+    <div class="form-group">
+        <label for="inputFirstName">First Name:</label>
+        <input type="text" class="form-control" name="firstname" id="inputFirstName" aria-describedby="FirstName" placeholder="First Name">
+    </div>
+    <div class="form-group">
+        <label for="inputLastName">Last Name:</label>
+        <input type="text" class="form-control" name="lastname" id="inputLastName" aria-describedby="LastName" placeholder="Last Name">
+    </div>
+  <div class="form-group">
+    <label for="inputEmail">Email address:</label>
+    <input type="email" class="form-control" name="email" id="inputEmail" aria-describedby="emailHelp" placeholder="Email">
+    <small id="emailHelp" class="form-text text-muted">We'll never distribute your email.</small>
+  </div>
+  <div class="form-group">
+    <label for="inputPasswordCheck">Verify Password:</label>
+    <input type="password" class="form-control" name="password2" id="inputPasswordCheck" placeholder="Password">
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+</div>
 
 <?php
     include("footer.php");

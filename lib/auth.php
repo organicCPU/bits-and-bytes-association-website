@@ -16,13 +16,13 @@ function login($username, $password)
 {
   global $db;
 
-  $statusCode = new StatusCodes(StatusCodes::GENERAL_ERROR);
+  $statusCode = GENERAL_ERROR;
 
   $username = filter_var($username, FILTER_SANITIZE_SPECIAL_CHARS);
   $password = filter_var($password, FILTER_SANITIZE_SPECIAL_CHARS);
   logout(); //in case they somehow get here while logged in
 
-  $query = "SELECT Password FROM users WHERE Username = :username";
+  $query = "SELECT Username, Password FROM users WHERE Username = :username";
   $statement = $db->prepare($query);
   $statement->bindValue(':username', $username, PDO::PARAM_STR);
   $statement -> execute();
@@ -39,6 +39,7 @@ function login($username, $password)
     if ($result == 1)
     {
       $statusCode = LOGIN_OK;
+      $_SESSION['login_user'] = $rows[0]['Username'];
     }
     else
     {
@@ -54,13 +55,13 @@ function login($username, $password)
     $statusCode = BAD_LOGIN;
   }
 
-  return $statusCode;
+  $_SESSION["status_code"] = $statusCode;
 }
 
 function logout()
 {
   unset($_SESSION['login_user']);
-
+  unset($_SESSION["status_code"]);
 }
 
 function changePassword($username, $password)

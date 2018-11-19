@@ -2,23 +2,9 @@
 
 define("baseLoaded", 1);
 
-require "lib/auth.php";
+require_once "lib/auth.php";
 require_once "lib/process.php";
 
-function passwordTest()
-{
-    $result = password_hash("common_password", PASSWORD_BCRYPT);
-    echo $result;
-    echo "\n";
-    echo password_verify("common_password", $result);
-
-    //global $db;
-
-    //$query = "INSERT INTO `users` (`Username`, `Password`, `Email`, `FirstName`, `LastName`, `Biography`, `BoardStartDate`, `BoardEndDate`, `Usergroup`) VALUES ('Mika', '$result', 'test@test.test', 'Michael', 'memes', NULL, NULL, NULL, '1')";
-    //$statement = $db->prepare($query);
-    //$statement -> execute();
-    //$rows = $statement->fetchAll();
-}
 
 if (!empty($_POST)) //sanitize
 {
@@ -53,9 +39,6 @@ function register($username, $password, $password2, $email, $firstname, $lastnam
     }
     catch (PDOException $e)
     {
-        //echo 'Caught exception: ',  $e->getMessage(), "\n";
-
-        //Find violated constraint:
         if ($e->errorInfo[1] == 1062) //if a UNIQUE constraint was violated
         {
             $constraints = substr($e->errorInfo[2], strpos($e->errorInfo[2], "for key", -18) + 9, -1); //might not be able to be attacked in email field
@@ -70,9 +53,8 @@ function register($username, $password, $password2, $email, $firstname, $lastnam
             }
         }
     }  
-    
-    $_SESSION["status_code"] = $constraints;
 
+    $_SESSION["status_code"] = $constraints;
 }
 ?>
 

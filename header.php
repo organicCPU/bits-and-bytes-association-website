@@ -28,7 +28,6 @@ function generateUserLoginDropdown()
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">
                 <h6 class="dropdown-header">Control Interfaces</h6>
-                    <?=$_SERVER['CLIENT_PATH']?>
                     <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/admin/admin.php">Website Management</a>
                     <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/user/user.php">Post Management</a>
                     <div class="dropdown-divider">

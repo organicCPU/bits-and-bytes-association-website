@@ -2,6 +2,7 @@
 
 define("baseLoaded", 1);
 
+require_once "lib/config.php";
 require_once "lib/auth.php";
 require_once "lib/process.php";
 
@@ -68,16 +69,16 @@ function register($username, $password, $password2, $email, $firstname, $lastnam
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="icon" href="./assets/img/icons/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="<?=$_SERVER['CLIENT_PATH']?>/assets/img/icons/favicon.ico" type="image/x-icon">
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="./assets/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <link rel="stylesheet" href="./assets/css/main.css">
+    <link rel="stylesheet" href="<?=$_SERVER['CLIENT_PATH']?>/assets/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="<?=$_SERVER['CLIENT_PATH']?>/assets/css/main.css">
     <title>Registration</title>
 </head>
 <body>
 
 <?php
-    include $_SERVER['CLIENT_PATH'] . "/header.php";
+    include $_SERVER['SERVER_PATH'] . "/header.php";
 ?>
 
 <div class="container">
@@ -115,7 +116,7 @@ function register($username, $password, $password2, $email, $firstname, $lastnam
 </div>
 
 <?php
-    include $_SERVER['CLIENT_PATH'] . "/footer.php";
+    include $_SERVER['SERVER_PATH'] . "/footer.php";
 ?>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

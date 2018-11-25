@@ -62,7 +62,7 @@ function findRegistrationStatus($username, $password, $password2, $email, $first
     {
         $result = PASSWORDS_UNMATCH;
     }
-    
+
     return $result;
 }
 
@@ -154,5 +154,17 @@ function printAlertFromStatus($status)
     </div>
   <?php
 
+}
+
+function printCustomAlert($alertType, $content)
+{
+    ?>
+    <div class="alert <?=$alertType?> alert-dismissible fade show" role="alert">
+     <?=$content?>
+     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+       <span aria-hidden="true">&times;</span>
+     </button>
+    </div>
+  <?php
 }
 ?>

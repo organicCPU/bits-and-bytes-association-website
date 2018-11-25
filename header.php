@@ -6,20 +6,20 @@ if(!defined("baseLoaded"))
 }
 
 require_once "lib/config.php";
-require_once $_SERVER['BBA_ROOT'] . "/auth.php";
+require_once $_SERVER['SERVER_PATH'] . "lib/auth.php";
 
 function generateAlert($status)
 {
     printAlertFromStatus($status);
 
-    $_SESSION["status_code"] = null;
+    unset($_SESSION["status_code"]);
 }
 
 function generateUserLoginDropdown()
 {
     ?>
             <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="userMenuDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
     <?php
     if(isset($_SESSION['login_user']))
     {
@@ -27,13 +27,14 @@ function generateUserLoginDropdown()
                 <?=$_SESSION['login_user']?>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item" href="#">aPanel</a>
-                    <a class="dropdown-item" href="#">uPanel</a>
+                <h6 class="dropdown-header">Control Interfaces</h6>
+                    <?=$_SERVER['CLIENT_PATH']?>
+                    <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/admin/admin.php">Website Management</a>
+                    <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/user/user.php">Post Management</a>
                     <div class="dropdown-divider">
                     </div>
-                    <a class="dropdown-item" href="login.php?action=logout">Log Out</a>
-                </div>
-            </div>
+                    <h6 class="dropdown-header">Meta</h6>
+                    <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/login.php?action=logout">Log Out</a>
         <?php
     }
     else
@@ -43,20 +44,20 @@ function generateUserLoginDropdown()
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">
                     <button class="dropdown-item" data-toggle="modal" data-target="#loginModal">Login</button>
-                    <a class="dropdown-item" href="register.php">Register</a>
-                </div>
-            </div>
+                    <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/register.php">Register</a>
         <?php
     }
+    ?>
+                    </div>
+            </div>
+            <?php
 }
-
-//login('MikalMirkas', 'lmao');
 
 ?>
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="#" aria-label="Bits & Bytes Association">
-            <img class="logo" src="./assets/img/banners/bba-banner-black.png" alt="Bits & Bytes Association">
+            <img class="logo" src="<?=$_SERVER['CLIENT_PATH']?>/assets/img/banners/bba-banner-black.png" alt="Bits & Bytes Association">
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon">
@@ -97,7 +98,7 @@ function generateUserLoginDropdown()
         </form>
         </div>
         
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="collapse navbar-collapse navbar" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item active">
                     <a class="nav-link" href="#">
@@ -132,6 +133,9 @@ function generateUserLoginDropdown()
         </div>
     </nav>
 </header>
-<?php if (isset($_SESSION["status_code"])) : ?>
-<?=generateAlert($_SESSION["status_code"])?>
+<?php if (isset($_SESSION['status_code'])) : ?>
+<?=generateAlert($_SESSION['status_code'])?>
+<?php endif?>
+<?php if (isset($_SESSION['global_permissions'])) : ?>
+<?=printCustomAlert("alert-success", $_SESSION["global_permissions"])?>
 <?php endif?>

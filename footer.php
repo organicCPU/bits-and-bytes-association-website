@@ -12,7 +12,7 @@ if(!defined("baseLoaded"))
   <ul class="nav nav-fill">
                 <li class="nav-item">
                     <a class="nav-link p-2" href="http://blogs.rrc.ca/informationsystems" title="The ACE Program">
-                        <img class="navbar-nav-svg" src="./assets/img/logos/rrc.png" alt="The Applied Computer Education Program">
+                        <img class="navbar-nav-svg" src="<?=$_SERVER['CLIENT_PATH']?>/assets/img/logos/rrc.png" alt="The Applied Computer Education Program">
                     </a>
                 </li>
                 <li class="nav-item">
@@ -42,7 +42,7 @@ if(!defined("baseLoaded"))
                 </li>
                 <li class="nav-item">
                     <a class="nav-link p-2" href="mailto:info@bitsandbytesassociation.ca" title="Email us">
-                        <img class="navbar-nav-svg" src="./assets/img/icons/email.png" alt="Email">
+                        <img class="navbar-nav-svg" src="<?=$_SERVER['CLIENT_PATH']?>/assets/img/icons/email.png" alt="Email">
                     </a>
                 </li>
                 <li class="nav-item">
@@ -55,22 +55,22 @@ if(!defined("baseLoaded"))
                 </li>
                 <li class="nav-item">
                     <a class="nav-link p-2" href="https://www.facebook.com/groups/865544533563505/" title="Find us on Facebook">
-                        <img class="navbar-nav-svg" src="assets/img/logos/facebook.png" alt="Find us on Facebook">
+                        <img class="navbar-nav-svg" src="<?=$_SERVER['CLIENT_PATH']?>/assets/img/logos/facebook.png" alt="Find us on Facebook">
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link p-2" href="https://www.facebook.com/rrcbitsbytes/" title="Find us on Facebook">
-                        <img class="navbar-nav-svg" src="./assets/img/icons/facebookpage.png" alt="Find us on Facebook">
+                        <img class="navbar-nav-svg" src="<?=$_SERVER['CLIENT_PATH']?>/assets/img/icons/facebookpage.png" alt="Find us on Facebook">
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link p-2" href="https://www.instagram.com/rrcbba/" title="Follow us on Instagram">
-                        <img class="navbar-nav-svg" src="./assets/img/logos/instagram.png" alt="Follow us on Instagram">
+                        <img class="navbar-nav-svg" src="<?=$_SERVER['CLIENT_PATH']?>/assets/img/logos/instagram.png" alt="Follow us on Instagram">
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link p-2" href="https://www.linkedin.com/groups/13502653" title ="Connect with us on LinkedIn">
-                        <img class="navbar-nav-svg" src="./assets/img/logos/linkedin.png" alt="Connect with us on LinkedIn">
+                        <img class="navbar-nav-svg" src="<?=$_SERVER['CLIENT_PATH']?>/assets/img/logos/linkedin.png" alt="Connect with us on LinkedIn">
                     </a>
                 </li>
             </ul>

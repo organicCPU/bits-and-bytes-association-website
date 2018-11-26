@@ -1,5 +1,6 @@
 <?php
-if (isset($_SERVER['BBA_ROOT']))
+//In production, this should be placed in the root directory for easy navigation. This should also be called by every single .php file that is not disjointed.
+if (isset($_SERVER['SERVER_PATH']))
 {
   exit();
 }
@@ -12,8 +13,12 @@ else
   $_SERVER['CLIENT_PATH']='/webdev2/project/repo'; //fix me later, should be smart-pathed $_SERVER['HTTP_HOST'] . 
 }
 
-if(!defined("baseLoaded"))
+function is_Library_File()
 {
-  header("Location: ../index.php");
+  if(!defined("baseLoaded"))
+  {
+    header("Location: " . $_SERVER['CLIENT_PATH'] . "/index.php");
+  }
 }
+
 ?>

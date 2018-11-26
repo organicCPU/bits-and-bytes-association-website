@@ -1,5 +1,9 @@
 <?php
 
+require_once "config.php";
+
+is_Library_File();
+
 define("USERNAME_MIN_LENGTH", 1);
 define("USERNAME_MAX_LENGTH", 20);
 define("PASSWORD_MIN_LENGTH", 6);
@@ -167,4 +171,144 @@ function printCustomAlert($alertType, $content)
     </div>
   <?php
 }
+
+function printQuery($cols, $rows)
+{
+    //oh god #YOLO
+    ?>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+    <?php foreach($cols as $col) : ?>
+        <th scope="col"><?=$col?></th>
+    <?php endforeach?>
+                </tr>
+            </thead>
+            <tbody>
+    <?php foreach($rows as $row => $field) : ?>
+    <tr>
+        <?php foreach($cols as $col) : ?>
+            <td><?=$field[$col]?></td>
+        <?php endforeach ?>
+    </tr>
+    <?php endforeach?>
+            </tbody>
+        </table>
+    </div>
+    <?php
+}
+
+function getUsers($search = "all")
+{
+    global $db;
+
+    $cols = ['UID', 'Username', 'Email', 'FirstName', 'LastName', 'BoardStartDate', 'BoardEndDate', 'Usergroup'];
+
+    $query = "SELECT UID, Username, Email, FirstName, LastName, BoardStartDate, BoardEndDate, Usergroup FROM Users"; 
+    $statement = $db->prepare($query);
+    $statement -> execute();
+    $rows = $statement->fetchAll();
+    printQuery($cols, $rows);
+}
+
+function updateUser($username)
+{
+    global $db;
+}
+
+function deleteUser()
+{
+    global $db;
+}
+
+function createUser()
+{
+    global $db;
+}
+
+function createCategory()
+{
+    global $db;
+}
+
+function getCategories()
+{
+    global $db;
+
+    $cols = ['Name', 'ShowInHeader'];
+
+    $query = "SELECT Name, ShowInHeader FROM Categories"; 
+    $statement = $db->prepare($query);
+    $statement -> execute();
+    $rows = $statement->fetchAll();
+    printQuery($cols, $rows);
+}
+
+function updateCategory()
+{
+    global $db;
+}
+
+function deleteCategory()
+{
+    global $db;
+}
+
+function createPost()
+{
+    global $db;
+}
+
+function getPosts()
+{
+    global $db;
+
+    $cols = ['Title', 'Date', 'OwnerID', 'CategoryID'];
+
+    $query = "SELECT Title, Date, OwnerID, CategoryID FROM posts"; 
+    $statement = $db->prepare($query);
+    $statement -> execute();
+    $rows = $statement->fetchAll();
+    printQuery($cols, $rows);
+}
+
+function updatePost()
+{
+    global $db;
+}
+
+function deletePost()
+{
+    global $db;
+}
+
+function createUsergroup()
+{
+    global $db;
+}
+
+function getUsergroups()
+{
+    global $db;
+
+    $cols = ['Name', 'IsAdmin', 'CanCreate', 'CanUpdate', 'CanDelete'];
+
+    $query = "SELECT Name, IsAdmin, CanCreate, CanUpdate, CanDelete FROM Usergroups"; 
+    $statement = $db->prepare($query);
+    $statement -> execute();
+    $rows = $statement->fetchAll();
+    printQuery($cols, $rows);
+}
+
+function updateUsergroup()
+{
+    global $db;
+}
+
+function deleteUsergroup()
+{
+    global $db;
+}
+
 ?>

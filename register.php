@@ -81,9 +81,9 @@ function register($username, $password, $password2, $email, $firstname, $lastnam
     include $_SERVER['SERVER_PATH'] . "/header.php";
 ?>
 
-<div class="container">
-
+<div class="container-fluid">
 <h1>Registration</h1>
+<hr/>
 <!--Serverside validation only atm-->
 <form action="#" method="post">
     <div class="form-group">

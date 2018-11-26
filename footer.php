@@ -1,9 +1,8 @@
 <?php
 
-if(!defined("baseLoaded"))
-{
-    header("Location: index.php");
-}
+require_once "lib/config.php";
+
+is_Library_File();
 ?>
 
 <footer>

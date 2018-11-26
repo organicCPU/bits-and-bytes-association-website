@@ -1,11 +1,8 @@
 <?php
 
-if(!defined("baseLoaded"))
-{
-    header("Location: index.php");
-}
-
 require_once "lib/config.php";
+
+is_Library_File();
 require_once $_SERVER['SERVER_PATH'] . "lib/auth.php";
 
 function generateAlert($status)
@@ -27,11 +24,15 @@ function generateUserLoginDropdown()
                 <?=$_SESSION['login_user']?>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">
-                <h6 class="dropdown-header">Control Interfaces</h6>
+                <?php if ($_SESSION['create'] == 1 || $_SESSION['update'] == 1 || $_SESSION['delete'] == 1) : ?>
+                <h6 class="dropdown-header">Interfaces</h6>
+                    <?php if ($_SESSION['admin'] == 1): ?>
                     <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/admin/admin.php">Website Management</a>
+                    <?php endif?>
                     <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/user/user.php">Post Management</a>
                     <div class="dropdown-divider">
                     </div>
+                <?php endif?>
                     <h6 class="dropdown-header">Meta</h6>
                     <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/login.php?action=logout">Log Out</a>
         <?php
@@ -55,7 +56,7 @@ function generateUserLoginDropdown()
 ?>
 <header>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#" aria-label="Bits & Bytes Association">
+        <a class="navbar-brand" href="<?=$_SERVER['CLIENT_PATH']?>" aria-label="Bits & Bytes Association">
             <img class="logo" src="<?=$_SERVER['CLIENT_PATH']?>/assets/img/banners/bba-banner-black.png" alt="Bits & Bytes Association">
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,8 +100,8 @@ function generateUserLoginDropdown()
         
         <div class="collapse navbar-collapse navbar" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item active">
-                    <a class="nav-link" href="#">
+                <li class="nav-item">
+                    <a class="nav-link" href="<?=$_SERVER['CLIENT_PATH']?>">
                         Home 
                         <span class="sr-only">(current)</span>
                     </a>
@@ -134,7 +135,4 @@ function generateUserLoginDropdown()
 </header>
 <?php if (isset($_SESSION['status_code'])) : ?>
 <?=generateAlert($_SESSION['status_code'])?>
-<?php endif?>
-<?php if (isset($_SESSION['global_permissions'])) : ?>
-<?=printCustomAlert("alert-success", $_SESSION["global_permissions"])?>
 <?php endif?>

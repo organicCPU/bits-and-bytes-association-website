@@ -18,5 +18,5 @@ else if ($action == "login")
     login($username, $password);
 }
 
-header("Location: index.php");
+header("Location: index.php"); //send to splash screen later?
 ?>

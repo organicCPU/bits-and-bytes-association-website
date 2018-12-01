@@ -66,8 +66,9 @@ function getPermissions($string)
 {
   global $db;
 
-  $query = "SELECT IsAdmin, CanCreate, CanUpdate, CanRead, CanDelete FROM usergroups WHERE Usergroup = $string"; 
+  $query = "SELECT IsAdmin, CanCreate, CanUpdate, CanRead, CanDelete FROM usergroups WHERE Usergroup = :string"; 
   $statement = $db->prepare($query);
+  $statement -> bindValue(':string', $string, PDO::PARAM_STR);
   $statement -> execute();
   $rows = $statement->fetch();
 
@@ -85,10 +86,10 @@ function logout()
   unset($_SESSION['login_user']);
   unset($_SESSION['status_code']);
   unset($_SESSION['admin']);
-  unset($_SESSION[['create']]);
-  unset($_SESSION[['read']]);
-  unset($_SESSION[['update']]);
-  unset($_SESSION[['delete']]);
+  unset($_SESSION['create']);
+  unset($_SESSION['read']);
+  unset($_SESSION['update']);
+  unset($_SESSION['delete']);
 }
 
 function changePassword($username, $password)

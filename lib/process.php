@@ -9,13 +9,6 @@ define("USERNAME_MAX_LENGTH", 20);
 define("PASSWORD_MIN_LENGTH", 6);
 define("NAME_MIN_LENGTH", 2);
 
-$post = 
-[
-	"id" => filter_input(INPUT_POST, "id", FILTER_SANITIZE_NUMBER_INT),
-	"title" => filter_input(INPUT_POST, "title", FILTER_SANITIZE_SPECIAL_CHARS),
-	"content" => filter_input(INPUT_POST, "content", FILTER_SANITIZE_SPECIAL_CHARS)
-];
-
 //class StatusCodes extends SplEnum
 //{
     //const __default = self::GENERAL_ERROR;
@@ -46,6 +39,7 @@ $post =
     const INTERNAL_SERVER_ERROR = 600;
 //}
 
+//probably should delete this method but meh
 function sanitizePOST()
 {
         //sanitize any potential useful inputs
@@ -61,7 +55,13 @@ function sanitizePOST()
         //return useful inputs
 }
 
-function findRegistrationStatus($username, $password, $password2, $email, $firstname, $lastname)
+//keeps sanitization consistent, write later
+function sanitize($str, $type)
+{
+    return filter_var($str, $type);
+}
+
+function validateUser($username, $password, $password2, $email, $firstname, $lastname)
 {
     $result = REGISTRATION_OK;
 
@@ -91,6 +91,21 @@ function findRegistrationStatus($username, $password, $password2, $email, $first
     }
 
     return $result;
+}
+
+function validatePost()
+{
+
+}
+
+function validateCategory()
+{
+
+}
+
+function validateUsergroup()
+{
+    
 }
 
 function statusCodeToText($status)
@@ -223,8 +238,8 @@ function printQueryPanel($args, $edit = null)
     </div>
     <?php if ($edit) : ?>
     <span>
-  <button class="fas fa-plus" id="but_add"></button>
-</span>
+        <button class="fas fa-plus" id="but_add"></button>
+    </span>
     <?php endif?>
 
     <?php
@@ -270,7 +285,15 @@ function deleteUser($username)
 function createUser($username, $password, $password2, $email, $firstname, $lastname, $usergroup)
 {
     global $db;
-    $constraints = findRegistrationStatus($username, $password, $password2, $email, $firstname, $lastname);
+
+    $username = filter_var($username, FILTER_SANITIZE_SPECIAL_CHARS);
+    $password = filter_var($password, FILTER_SANITIZE_SPECIAL_CHARS);
+    $password2 = filter_var($password2, FILTER_SANITIZE_SPECIAL_CHARS);
+    $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+    $firstname = filter_var($firstname, FILTER_SANITIZE_SPECIAL_CHARS);
+    $lastname = filter_var($lastname, FILTER_SANITIZE_SPECIAL_CHARS);
+
+    $constraints = validateUser($username, $password, $password2, $email, $firstname, $lastname);
     try
     {
         $query = "INSERT INTO `users` (`Username`, `Password`, `Email`, `FirstName`, `LastName`, `Usergroup`) VALUES (:username, :password, :email, :FirstName, :LastName, :usergroup)";
@@ -303,9 +326,18 @@ function createUser($username, $password, $password2, $email, $firstname, $lastn
     return $constraints;
 }
 
-function createCategory($name)
+function createCategory($name, $showInNav)
 {
     global $db;
+
+    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
+    $username = filter_var($username, FILTER_SANITIZE_SPECIAL_CHARS);
+    $password = filter_var($password, FILTER_SANITIZE_SPECIAL_CHARS);
+    $password2 = filter_var($password2, FILTER_SANITIZE_SPECIAL_CHARS);
+    $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+    $firstname = filter_var($firstname, FILTER_SANITIZE_SPECIAL_CHARS);
+    $lastname = filter_var($lastname, FILTER_SANITIZE_SPECIAL_CHARS);
+    $content = filter_var($content, FILTER_SANITIZE_SPECIAL_CHARS);
 }
 
 function getCategories($name = null)
@@ -331,16 +363,32 @@ function deleteCategory($name)
     global $db;
 }
 
-function createPost()
+function createPost($title, $content, $username, $category, $showInNav = false)
 {
     global $db;
 
-	$query = "UPDATE blog SET content = :content, title = :title, time = NOW() WHERE id = :id";
-	$statement = $db->prepare($query);
-	$statement->bindValue(':id', $post['id']);
-	$statement->bindValue(':content', $post['content']);
-	$statement->bindValue(':title', $post['title']);
+    $title = filter_var($title, FILTER_SANITIZE_SPECIAL_CHARS);
+    $username = filter_var($username, FILTER_SANITIZE_SPECIAL_CHARS);
+    $content = filter_var($content, FILTER_SANITIZE_SPECIAL_CHARS);
+    $category = filter_var($category, FILTER_SANITIZE_SPECIAL_CHARS);
+    $showInNav = filter_var($showInNav, FILTER_SANITIZE_NUMBER_INT);
+    
+    //Resolve Username to ID
+    $userID = getUsers($_SESSION['login_user'])[1][0]['UID'];
+    //Resolve CategoryID to ID
+    $categoryID = getCategory();
+
+    //Do Query
+	$query = "INSERT INTO posts (title, content, OwnerID, CategoryID, ShowInCategoryNav) VALUES (:title, :content, :OwnerID, :category, :nav)";
+    $statement = $db->prepare($query);
+    $statement->bindValue(':title', $title, PDO::PARAM_STR);
+	$statement->bindValue(':content', $content, PDO::PARAM_STR);
+    $statement->bindValue(':OwnerID', $userID, PDO::PARAM_INT);
+    $statement->bindValue(':CategoryID', $categoryID, PDO::PARAM_INT);
+    $statement->bindValue(':nav', $showInNav, PDO::PARAM_BOOL);
 	$statement -> execute();
+    header("Location: index.php");
+    exit();
 }
 
 function getPosts($OwnerID = null)
@@ -358,7 +406,7 @@ function getPosts($OwnerID = null)
     {
         $query = "SELECT Title, Date, OwnerID, CategoryID FROM Posts WHERE OwnerID = :OwnerID";
         $statement = $db->prepare($query);
-        $statement -> bindValue(':OwnerID', $OwnerID, PDO::PARAM_STR);
+        $statement -> bindValue(':OwnerID', $OwnerID, PDO::PARAM_INT);
     }
     $statement -> execute();
     $rows = $statement->fetchAll();
@@ -366,16 +414,15 @@ function getPosts($OwnerID = null)
 }
 
 function updatePost($post)
-{
-	global $db;
+{   
+    global $db;
 
-	$query = "INSERT INTO blog (content, title) VALUES (:content, :title)";
+	$query = "UPDATE blog SET content = :content, title = :title, time = NOW() WHERE id = :id";
 	$statement = $db->prepare($query);
+	$statement->bindValue(':id', $post['id']);
 	$statement->bindValue(':content', $post['content']);
 	$statement->bindValue(':title', $post['title']);
 	$statement -> execute();
-	header("Location: index.php");
-	die();
 }
 
 function deletePost($post)
@@ -391,6 +438,15 @@ function deletePost($post)
 function createUsergroup()
 {
     global $db;
+
+    $id = filter_var($id, FILTER_SANITIZE_NUMBER_INT);
+    $username = filter_var($username, FILTER_SANITIZE_SPECIAL_CHARS);
+    $password = filter_var($password, FILTER_SANITIZE_SPECIAL_CHARS);
+    $password2 = filter_var($password2, FILTER_SANITIZE_SPECIAL_CHARS);
+    $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+    $firstname = filter_var($firstname, FILTER_SANITIZE_SPECIAL_CHARS);
+    $lastname = filter_var($lastname, FILTER_SANITIZE_SPECIAL_CHARS);
+    $content = filter_var($content, FILTER_SANITIZE_SPECIAL_CHARS);
 }
 
 function getUsergroups()

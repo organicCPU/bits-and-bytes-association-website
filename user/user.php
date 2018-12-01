@@ -28,6 +28,7 @@ else
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="<?=$_SERVER['CLIENT_PATH']?>/assets/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link href="//cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
     <link rel="stylesheet" href="<?=$_SERVER['CLIENT_PATH']?>/assets/css/main.css">
     <link rel="stylesheet" href="<?=$_SERVER['CLIENT_PATH']?>/assets/css/admin.css">   
     <title>User Control Panel</title>
@@ -54,6 +55,9 @@ else
         </div>
         <div class="tab-pane fade" id="v-pills-user-posts" role="tabpanel" aria-labelledby="v-pills-user-posts-tab">
         <?=printQueryPanel(getPosts($myID))?>
+        <form method="POST", action="<?=$_SERVER['CLIENT_PATH']?>/post/post.php">
+        <button class="fas fa-plus" id="but_add" type="submit"></button>
+        </form>
         </div>
       </div>
     </div>

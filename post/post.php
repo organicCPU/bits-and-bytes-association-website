@@ -4,6 +4,18 @@ define("baseLoaded", 1);
 
 require "../lib/config.php";
 require_once $_SERVER['SERVER_PATH'] . "lib/auth.php";
+require_once $_SERVER['SERVER_PATH'] . "lib/process.php";
+
+if(!empty($_POST))
+{
+    sanitizePOST();
+
+}
+else
+{
+    createPost();
+    
+}
 
 ?>
 

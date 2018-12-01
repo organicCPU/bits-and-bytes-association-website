@@ -25,16 +25,19 @@ function generateUserLoginDropdown()
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">
                 <?php if ($_SESSION['create'] == 1 || $_SESSION['update'] == 1 || $_SESSION['delete'] == 1) : ?>
-                <h6 class="dropdown-header">Interfaces</h6>
                     <?php if ($_SESSION['admin'] == 1): ?>
+                    <h6 class="dropdown-header">Interfaces</h6>
                     <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/admin/admin.php">Website Management</a>
+                    <div class="dropdown-divider"></div>
                     <?php endif?>
+                    <h6 class="dropdown-header">Posts</h6>
                     <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/user/user.php">Post Management</a>
-                    <div class="dropdown-divider">
-                    </div>
+                    <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/post/post.php">Create New</a>
+                    <div class="dropdown-divider"></div>
                 <?php endif?>
                     <h6 class="dropdown-header">Meta</h6>
                     <a class="dropdown-item" href="<?=$_SERVER['CLIENT_PATH']?>/login.php?action=logout">Log Out</a>
+                    </div>
         <?php
     }
     else

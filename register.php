@@ -13,53 +13,19 @@ if(isset($_SESSION['login_user']))
 
 if (!empty($_POST)) //sanitize
 {
+    //refactor this elsewhere
+    $id = filter_input(INPUT_POST, "id", FILTER_SANITIZE_NUMBER_INT);
     $username = filter_input(INPUT_POST, "username", FILTER_SANITIZE_SPECIAL_CHARS);
     $password = filter_input(INPUT_POST, "password", FILTER_SANITIZE_SPECIAL_CHARS);
     $password2 = filter_input(INPUT_POST, "password2", FILTER_SANITIZE_SPECIAL_CHARS);
     $email = filter_input(INPUT_POST, "email", FILTER_SANITIZE_EMAIL);
     $firstname = filter_input(INPUT_POST, "firstname", FILTER_SANITIZE_SPECIAL_CHARS);
     $lastname = filter_input(INPUT_POST, "lastname", FILTER_SANITIZE_SPECIAL_CHARS);
-    
-    register($username, $password, $password2, $email, $firstname, $lastname);
-}
+    $content = filter_input(INPUT_POST, "content", FILTER_SANITIZE_SPECIAL_CHARS);
 
-function register($username, $password, $password2, $email, $firstname, $lastname)
-{
     $usergroup = 4;  //should I query the DB for default user group?
-    global $db;
-
-    $constraints = findRegistrationStatus($username, $password, $password2, $email, $firstname, $lastname); //validate
-
-    try
-    {
-        $query = "INSERT INTO `users` (`Username`, `Password`, `Email`, `FirstName`, `LastName`, `Usergroup`) VALUES (:username, :password, :email, :FirstName, :LastName, $usergroup)";
-        $statement = $db->prepare($query);
-        $password = password_hash($password, PASSWORD_BCRYPT);
-        $statement -> bindValue(':username', $username, PDO::PARAM_STR);
-        $statement -> bindValue(':password', $password, PDO::PARAM_STR);
-        $statement -> bindValue(':email', $email, PDO::PARAM_STR);
-        $statement -> bindValue(':FirstName', $firstname, PDO::PARAM_STR);
-        $statement -> bindValue(':LastName', $lastname, PDO::PARAM_STR);
-        $statement -> execute();
-    }
-    catch (PDOException $e)
-    {
-        if ($e->errorInfo[1] == 1062) //if a UNIQUE constraint was violated
-        {
-            $constraints = substr($e->errorInfo[2], strpos($e->errorInfo[2], "for key", -18) + 9, -1); //might not be able to be attacked in email field
-
-            if($constraints === "Username")
-            {
-                $constraints = UNIQUE_VIOLATION_USERNAME;
-            }
-            else if ($constraints === "Email")
-            {
-                $constraints = UNIQUE_VIOLATION_EMAIL;
-            }
-        }
-    }  
-
-    $_SESSION["status_code"] = $constraints;
+    
+    $_SESSION["status_code"] = createUser($username, $password, $password2, $email, $firstname, $lastname, $usergroup);
 }
 ?>
 

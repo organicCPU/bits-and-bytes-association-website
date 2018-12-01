@@ -9,6 +9,13 @@ define("USERNAME_MAX_LENGTH", 20);
 define("PASSWORD_MIN_LENGTH", 6);
 define("NAME_MIN_LENGTH", 2);
 
+$post = 
+[
+	"id" => filter_input(INPUT_POST, "id", FILTER_SANITIZE_NUMBER_INT),
+	"title" => filter_input(INPUT_POST, "title", FILTER_SANITIZE_SPECIAL_CHARS),
+	"content" => filter_input(INPUT_POST, "content", FILTER_SANITIZE_SPECIAL_CHARS)
+];
+
 //class StatusCodes extends SplEnum
 //{
     //const __default = self::GENERAL_ERROR;
@@ -17,6 +24,7 @@ define("NAME_MIN_LENGTH", 2);
     const SERVER_ERROR_PREFIX = 5;
 
     const OK = 200;
+    const POST_OK = 211;
     const LOGIN_OK = 281;
     const REGISTRATION_OK = 291;
 
@@ -37,6 +45,21 @@ define("NAME_MIN_LENGTH", 2);
 
     const INTERNAL_SERVER_ERROR = 600;
 //}
+
+function sanitizePOST()
+{
+        //sanitize any potential useful inputs
+        $id = filter_input(INPUT_POST, "id", FILTER_SANITIZE_NUMBER_INT);
+        $username = filter_input(INPUT_POST, "username", FILTER_SANITIZE_SPECIAL_CHARS);
+        $password = filter_input(INPUT_POST, "password", FILTER_SANITIZE_SPECIAL_CHARS);
+        $password2 = filter_input(INPUT_POST, "password2", FILTER_SANITIZE_SPECIAL_CHARS);
+        $email = filter_input(INPUT_POST, "email", FILTER_SANITIZE_EMAIL);
+        $firstname = filter_input(INPUT_POST, "firstname", FILTER_SANITIZE_SPECIAL_CHARS);
+        $lastname = filter_input(INPUT_POST, "lastname", FILTER_SANITIZE_SPECIAL_CHARS);
+        $content = filter_input(INPUT_POST, "content", FILTER_SANITIZE_SPECIAL_CHARS);
+
+        //return useful inputs
+}
 
 function findRegistrationStatus($username, $password, $password2, $email, $firstname, $lastname)
 {
@@ -172,12 +195,14 @@ function printCustomAlert($alertType, $content)
   <?php
 }
 
-function printQuery($cols, $rows)
+function printQueryPanel($args, $edit = null)
 {
+    $rows = $args[1];
+    $cols = $args[0];
     //oh god #YOLO
     ?>
     <div class="table-responsive">
-        <table class="table">
+        <table class="table" id="makeEditable">
             <thead>
                 <tr>
     <?php foreach($cols as $col) : ?>
@@ -196,20 +221,40 @@ function printQuery($cols, $rows)
             </tbody>
         </table>
     </div>
+    <?php if ($edit) : ?>
+    <span>
+  <button class="fas fa-plus" id="but_add"></button>
+</span>
+    <?php endif?>
+
     <?php
 }
 
-function getUsers($search = "all")
+
+function getUsers($username = null)
 {
     global $db;
 
+    $query;
+    $statement;
+
     $cols = ['UID', 'Username', 'Email', 'FirstName', 'LastName', 'BoardStartDate', 'BoardEndDate', 'Usergroup'];
 
-    $query = "SELECT UID, Username, Email, FirstName, LastName, BoardStartDate, BoardEndDate, Usergroup FROM Users"; 
+    if ($username == null)
+    {
+        $query = "SELECT UID, Username, Email, FirstName, LastName, BoardStartDate, BoardEndDate, Usergroup FROM Users"; 
+    }
+    else
+    {
+        $query = "SELECT UID, Username, Email, FirstName, LastName, BoardStartDate, BoardEndDate, Usergroup FROM Users WHERE Username = :Username"; 
+    }
     $statement = $db->prepare($query);
+    $statement -> bindValue(':Username', $username, PDO::PARAM_STR);
     $statement -> execute();
     $rows = $statement->fetchAll();
-    printQuery($cols, $rows);
+
+    return [$cols, $rows];
+    //printQuery($cols, $rows);
 }
 
 function updateUser($username)
@@ -217,22 +262,53 @@ function updateUser($username)
     global $db;
 }
 
-function deleteUser()
+function deleteUser($username)
 {
     global $db;
 }
 
-function createUser()
+function createUser($username, $password, $password2, $email, $firstname, $lastname, $usergroup)
+{
+    global $db;
+    $constraints = findRegistrationStatus($username, $password, $password2, $email, $firstname, $lastname);
+    try
+    {
+        $query = "INSERT INTO `users` (`Username`, `Password`, `Email`, `FirstName`, `LastName`, `Usergroup`) VALUES (:username, :password, :email, :FirstName, :LastName, :usergroup)";
+        $statement = $db->prepare($query);
+        $password = password_hash($password, PASSWORD_BCRYPT);
+        $statement -> bindValue(':username', $username, PDO::PARAM_STR);
+        $statement -> bindValue(':password', $password, PDO::PARAM_STR);
+        $statement -> bindValue(':email', $email, PDO::PARAM_STR);
+        $statement -> bindValue(':FirstName', $firstname, PDO::PARAM_STR);
+        $statement -> bindValue(':LastName', $lastname, PDO::PARAM_STR);
+        $statement -> bindValue(':usergroup', $usergroup, PDO::PARAM_INT);
+        $statement -> execute();
+    }
+    catch (PDOException $e)
+    {
+        if ($e->errorInfo[1] == 1062) //if a UNIQUE constraint was violated
+        {
+            $constraints = substr($e->errorInfo[2], strpos($e->errorInfo[2], "for key", -18) + 9, -1); //might not be able to be attacked in email field
+
+            if($constraints === "Username")
+            {
+                $constraints = UNIQUE_VIOLATION_USERNAME;
+            }
+            else if ($constraints === "Email")
+            {
+                $constraints = UNIQUE_VIOLATION_EMAIL;
+            }
+        }
+    }
+    return $constraints;
+}
+
+function createCategory($name)
 {
     global $db;
 }
 
-function createCategory()
-{
-    global $db;
-}
-
-function getCategories()
+function getCategories($name = null)
 {
     global $db;
 
@@ -242,15 +318,15 @@ function getCategories()
     $statement = $db->prepare($query);
     $statement -> execute();
     $rows = $statement->fetchAll();
-    printQuery($cols, $rows);
+    return [$cols, $rows];
 }
 
-function updateCategory()
+function updateCategory($name)
 {
     global $db;
 }
 
-function deleteCategory()
+function deleteCategory($name)
 {
     global $db;
 }
@@ -258,29 +334,58 @@ function deleteCategory()
 function createPost()
 {
     global $db;
+
+	$query = "UPDATE blog SET content = :content, title = :title, time = NOW() WHERE id = :id";
+	$statement = $db->prepare($query);
+	$statement->bindValue(':id', $post['id']);
+	$statement->bindValue(':content', $post['content']);
+	$statement->bindValue(':title', $post['title']);
+	$statement -> execute();
 }
 
-function getPosts()
+function getPosts($OwnerID = null)
 {
     global $db;
 
     $cols = ['Title', 'Date', 'OwnerID', 'CategoryID'];
 
-    $query = "SELECT Title, Date, OwnerID, CategoryID FROM posts"; 
-    $statement = $db->prepare($query);
+    if($OwnerID == null)
+    {
+        $query = "SELECT Title, Date, OwnerID, CategoryID FROM Posts";
+        $statement = $db->prepare($query);
+    }
+    else
+    {
+        $query = "SELECT Title, Date, OwnerID, CategoryID FROM Posts WHERE OwnerID = :OwnerID";
+        $statement = $db->prepare($query);
+        $statement -> bindValue(':OwnerID', $OwnerID, PDO::PARAM_STR);
+    }
     $statement -> execute();
     $rows = $statement->fetchAll();
-    printQuery($cols, $rows);
+    return [$cols, $rows];
 }
 
-function updatePost()
+function updatePost($post)
 {
-    global $db;
+	global $db;
+
+	$query = "INSERT INTO blog (content, title) VALUES (:content, :title)";
+	$statement = $db->prepare($query);
+	$statement->bindValue(':content', $post['content']);
+	$statement->bindValue(':title', $post['title']);
+	$statement -> execute();
+	header("Location: index.php");
+	die();
 }
 
-function deletePost()
+function deletePost($post)
 {
     global $db;
+
+	$query = "DELETE FROM blog WHERE id = :id";
+	$statement = $db->prepare($query);
+	$statement->bindValue(':id', $post);
+	$statement -> execute();
 }
 
 function createUsergroup()
@@ -292,21 +397,22 @@ function getUsergroups()
 {
     global $db;
 
-    $cols = ['Name', 'IsAdmin', 'CanCreate', 'CanUpdate', 'CanDelete'];
+    $cols = ['Name', 'IsAdmin', 'CanCreate', 'CanRead', 'CanUpdate', 'CanDelete'];
 
-    $query = "SELECT Name, IsAdmin, CanCreate, CanUpdate, CanDelete FROM Usergroups"; 
+    $query = "SELECT Name, IsAdmin, CanCreate, CanRead, CanUpdate, CanDelete FROM Usergroups"; 
     $statement = $db->prepare($query);
     $statement -> execute();
     $rows = $statement->fetchAll();
-    printQuery($cols, $rows);
+
+    return [$cols, $rows];
 }
 
-function updateUsergroup()
+function updateUsergroup($usergroup)
 {
     global $db;
 }
 
-function deleteUsergroup()
+function deleteUsergroup($usergroup)
 {
     global $db;
 }

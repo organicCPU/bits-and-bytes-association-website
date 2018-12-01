@@ -42,8 +42,7 @@ function login($username, $password)
       $statusCode = LOGIN_OK;
 
       $_SESSION['login_user'] = $rows[0]['Username'];
-      $_SESSION['global_permissions'] = $rows[0]['Usergroup'];
-      getPermissions($_SESSION['global_permissions']); //assuming that this pseudo-subquery is better than a join
+      getPermissions($rows[0]['Usergroup']); //assuming that this pseudo-subquery is better than a join
       //$_SESSION['isAdmin'] = $rows[0]
     }
     else

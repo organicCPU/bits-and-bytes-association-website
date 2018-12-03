@@ -80,7 +80,7 @@ if (!empty($_GET))
         </select>
     </div>
   <button type="submit" class="btn btn-primary">Submit</button>
-  <button type="submit" class="btn btn-danger" name="command" value="Delete" onclick="return confirm('Are you sure you wish to delete this post?')" />Delete</button>
+  <a type="submit" class="btn btn-danger" name="command" value="Delete" href="<?=$_SERVER['CLIENT_PATH']?>/post/delete.php?id=<?=$id?>"/>Delete</a>
 </form>
 
 </div>

@@ -54,7 +54,7 @@ else
           <p>Cillum ad ut irure tempor velit nostrud occaecat ullamco aliqua anim Lorem sint. Veniam sint duis incididunt do esse magna mollit excepteur laborum qui. Id id reprehenderit sit est eu aliqua occaecat quis et velit excepteur laborum mollit dolore eiusmod. Ipsum dolor in occaecat commodo et voluptate minim reprehenderit mollit pariatur. Deserunt non laborum enim et cillum eu deserunt excepteur ea incididunt minim occaecat.</p>
         </div>
         <div class="tab-pane fade" id="v-pills-user-posts" role="tabpanel" aria-labelledby="v-pills-user-posts-tab">
-        <?=printQueryPanel(getPosts($myID))?>
+        <?=printLinkPanel(getPosts($myID), false, $_SERVER['CLIENT_PATH'] . "/post/view.php?id=")?>
         <form method="POST", action="<?=$_SERVER['CLIENT_PATH']?>/post/post.php">
         <button class="fas fa-plus" id="but_add" type="submit"></button>
         </form>

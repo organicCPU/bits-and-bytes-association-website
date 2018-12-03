@@ -8,28 +8,14 @@ require_once $_SERVER['SERVER_PATH'] . "lib/process.php";
 
 if ($_SESSION['create'] != 1 && $_SESSION['admin'] != 1)
 {
-    exit();
+    header("Location: " . $_SERVER['CLIENT_PATH'] . "/index.php");
 }
 
-if (!empty($_GET))
+if (!empty($_POST))
 {
-    $action = filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS);
-    $id = filter_input(INPUT_GET, "id", FILTER_SANITIZE_NUMBER_INT);
-
-    $post = pullPost($id);
-    $_SESSION["status_code"] = validatePostPermissions($post);
-    
-    if($_SESSION["status_code"] == POST_FOUND)
-    {
-        $postID = $post['ID'];
-    }
-
-    if((!empty($_POST) && isset($postID)))
-    {
-        updatePost($postID, $_POST['title'], $_POST['content'], $_POST['category']);
-        $post = pullPost($id);
-    }
+    createPost($_POST['title'], $_POST['content'], $_SESSION['login_user'], $_POST['category']);
 }
+
 
 ?>
 
@@ -86,5 +72,11 @@ if (!empty($_GET))
     <script src="<?=$_SERVER['CLIENT_PATH']?>/assets/js/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="<?=$_SERVER['CLIENT_PATH']?>/assets/js/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
     <script src="<?=$_SERVER['CLIENT_PATH']?>/assets/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="<?=$_SERVER['CLIENT_PATH']?>/vendor/tinymce/tinymce/tinymce.min.js"></script>
+    <script>
+  tinymce.init({
+    selector: '#inputContent'
+  });
+  </script>
 </body>
 </html>

@@ -60,10 +60,10 @@ if($_SESSION['admin'] != 1)
             <?=printQueryPanel(getUsergroups(), true)?>
         </div>
         <div class="tab-pane fade" id="v-pills-categories" role="tabpanel" aria-labelledby="v-pills-categories-tab"> 
-          <?=printQueryPanel(getCategories(), true)?>
+          <?=printLinkPanel(getCategories(), false, $_SERVER['CLIENT_PATH'])?>
         </div>
         <div class="tab-pane fade" id="v-pills-posts" role="tabpanel" aria-labelledby="v-pills-posts-tab">
-          <?=printQueryPanel(getPosts(), true)?>
+          <?=printLinkPanel(getPosts(), false, $_SERVER['CLIENT_PATH'] . "/post/view.php?id=")?>
         </div>
       </div>
     </div>

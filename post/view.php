@@ -13,13 +13,10 @@ $config->set('Core.Encoding', 'UTF-8'); // replace with your encoding
 $config->set('HTML.Doctype', 'HTML 4.01 Transitional'); // replace with your doctype
 $purifier = new HTMLPurifier($config);
 
-if ($_SESSION['read'] != 1 && $_SESSION['admin'] != 1)
-{
-    exit();
-}
 
 if (!empty($_GET))
 {
+    global $id;
     $id = filter_input(INPUT_GET, "id", FILTER_SANITIZE_NUMBER_INT);
 
     $post = pullPost($id);
@@ -29,6 +26,12 @@ if (!empty($_GET))
     {
         $postID = $post['ID'];
     }
+}
+
+
+if ($_SESSION['read'] != 1 && $_SESSION['admin'] != 1)
+{
+    exit();
 }
 
 ?>
@@ -44,7 +47,7 @@ if (!empty($_GET))
     <link rel="stylesheet" href="<?=$_SERVER['CLIENT_PATH']?>/assets/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
     <link rel="stylesheet" href="<?=$_SERVER['CLIENT_PATH']?>/assets/css/main.css">
-    <title>Create New Post</title>
+    <title><?=$post['Title']?></title>
 </head>
 <body>
 
@@ -58,6 +61,12 @@ if (!empty($_GET))
     <?=$purifier->purify($post['Content'])?>
 </div>
 
+    <?php if($post['OwnerID'] == getUsers($_SESSION['login_user'])[1][0]['UID'] || $_SESSION['admin']) : ?>
+    <div class="container-fluid">
+<a class="btn btn-primary" role="button" href="<?=$_SERVER['CLIENT_PATH'] . '/post/edit.php?id=' . $id?>">Edit</a>
+<!--<a class="btn btn-danger" role="button" href="<?='delete/'.$id?>">Delete</a>-->
+    </div>
+<?php endif?>
 
 <?php
     include $_SERVER['SERVER_PATH'] . "/footer.php";

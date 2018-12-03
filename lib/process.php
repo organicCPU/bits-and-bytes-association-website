@@ -230,7 +230,7 @@ function printCustomAlert($alertType, $content)
   <?php
 }
 
-function printQueryPanel($args, $edit = null)
+function printQueryPanel($args, $edit = null, $buttonIdName = "but_add")
 {
     $rows = $args[1];
     $cols = $args[0];
@@ -249,7 +249,9 @@ function printQueryPanel($args, $edit = null)
     <?php foreach($rows as $row => $field) : ?>
     <tr>
         <?php foreach($cols as $col) : ?>
-            <td><?=$field[$col]?></td>
+            <td>
+            <?=$field[$col]?>
+            </td>
         <?php endforeach ?>
     </tr>
     <?php endforeach?>
@@ -258,13 +260,55 @@ function printQueryPanel($args, $edit = null)
     </div>
     <?php if ($edit) : ?>
     <span>
-        <button class="fas fa-plus" id="but_add"></button>
+        <button class="fas fa-plus" id="<?=$buttonIdName?>"></button>
     </span>
     <?php endif?>
 
     <?php
 }
 
+function printLinkPanel($args, $edit = null, $hyperlink = null, $buttonIdName = "but_add") //posts only, hardcoded that second panel has a url.
+{
+    $rows = $args[1];
+    $cols = $args[0];
+    //oh god #YOLO
+    ?>
+    <div class="table-responsive">
+        <table class="table" id="makeEditable">
+            <thead>
+                <tr>
+    <?php foreach($cols as $col) : ?>
+        <th scope="col"><?=$col?></th>
+    <?php endforeach?>
+                </tr>
+            </thead>
+            <tbody>
+    <?php foreach($rows as $row => $field) : ?>
+    <tr>
+        <?php foreach($cols as $col => $value) : ?>
+            <td>
+            <?php if($field[$col] === $field[1]) : ?>
+            <a href="<?=$hyperlink . $field['ID']?>">
+            <?php endif?>
+            <?=$field[$col]?>
+            <?php if($field[$col] === $field[1]) : ?>
+            </a>
+            <?php endif?>
+            </td>
+        <?php endforeach ?>
+    </tr>
+    <?php endforeach?>
+            </tbody>
+        </table>
+    </div>
+    <?php if ($edit) : ?>
+    <span>
+        <button class="fas fa-plus" id="<?=$buttonIdName?>"></button>
+    </span>
+    <?php endif?>
+
+    <?php
+}
 
 function getUsers($username = null)
 {
@@ -273,15 +317,15 @@ function getUsers($username = null)
     $query;
     $statement;
 
-    $cols = ['UID', 'Username', 'Email', 'FirstName', 'LastName', 'BoardStartDate', 'BoardEndDate', 'Usergroup'];
+    $cols = ['UID', 'Username', 'Email', 'FirstName', 'LastName', 'BoardStartDate', 'BoardEndDate', 'Usergroup', 'DisplayPicture'];
 
     if ($username == null)
     {
-        $query = "SELECT UID, Username, Email, FirstName, LastName, BoardStartDate, BoardEndDate, Usergroup FROM Users"; 
+        $query = "SELECT UID, Username, Email, FirstName, LastName, BoardStartDate, BoardEndDate, Usergroup, DisplayPicture FROM Users"; 
     }
     else
     {
-        $query = "SELECT UID, Username, Email, FirstName, LastName, BoardStartDate, BoardEndDate, Usergroup FROM Users WHERE Username = :Username"; 
+        $query = "SELECT UID, Username, Email, FirstName, LastName, BoardStartDate, BoardEndDate, Usergroup, DisplayPicture FROM Users WHERE Username = :Username"; 
     }
     $statement = $db->prepare($query);
     $statement -> bindValue(':Username', $username, PDO::PARAM_STR);
@@ -496,16 +540,16 @@ function getPosts($ownerID = null)
 {
     global $db;
 
-    $cols = ['Title', 'Date', 'OwnerID', 'CategoryID'];
+    $cols = ['ID', 'Title', 'Date', 'OwnerID', 'CategoryID'];
 
     if($ownerID == null)
     {
-        $query = "SELECT Title, Date, OwnerID, CategoryID FROM Posts";
+        $query = "SELECT ID, Title, Date, OwnerID, CategoryID FROM Posts";
         $statement = $db->prepare($query);
     }
     else
     {
-        $query = "SELECT Title, Date, OwnerID, CategoryID FROM Posts WHERE OwnerID = :OwnerID";
+        $query = "SELECT ID, Title, Date, OwnerID, CategoryID FROM Posts WHERE OwnerID = :OwnerID";
         $statement = $db->prepare($query);
         $statement -> bindValue(':OwnerID', $ownerID, PDO::PARAM_INT);
     }
@@ -614,6 +658,29 @@ function updateUsergroup($usergroup)
 function deleteUsergroup($usergroup)
 {
     global $db;
+}
+
+function associateImage($userID, $path = null)
+{
+    //note that this is exploitable since the filenames aren't changed to the user ID, letting you attack other users if you know their filename for their picture.
+
+    //also F5ing after this will throw a bunch of errors.
+    global $db;
+    $image = getUsers($_SESSION['login_user'])[1][0]['DisplayPicture'];
+
+    if($path == null && isset($image))
+    {
+        foreach (glob($_SERVER['SERVER_PATH'] . substr($image, 22, -11) . "*") as $filename) 
+        {
+            //echo "$filename size " . filesize($filename) . "\n";
+            unlink($filename);
+        }
+    }
+        $query = "UPDATE Users SET DisplayPicture = :dp WHERE UID = :id";
+        $statement = $db->prepare($query);
+        $statement->bindValue(':dp', $path);
+        $statement->bindValue(':id', $userID, PDO::PARAM_INT);
+        $statement -> execute();
 }
 
 ?>

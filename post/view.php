@@ -2,7 +2,34 @@
 
 define("baseLoaded", 1);
 
-require "lib/config.php";
+require "../lib/config.php";
+require_once $_SERVER['SERVER_PATH'] . "lib/auth.php";
+require_once $_SERVER['SERVER_PATH'] . "lib/process.php";
+require_once $_SERVER['SERVER_PATH'] . "vendor/ezyang/htmlpurifier/library/HTMLPurifier.auto.php";
+
+$config = HTMLPurifier_Config::createDefault();
+// configuration goes here:
+$config->set('Core.Encoding', 'UTF-8'); // replace with your encoding
+$config->set('HTML.Doctype', 'HTML 4.01 Transitional'); // replace with your doctype
+$purifier = new HTMLPurifier($config);
+
+if ($_SESSION['read'] != 1 && $_SESSION['admin'] != 1)
+{
+    exit();
+}
+
+if (!empty($_GET))
+{
+    $id = filter_input(INPUT_GET, "id", FILTER_SANITIZE_NUMBER_INT);
+
+    $post = pullPost($id);
+    $_SESSION["status_code"] = validatePostPermissions($post);
+    
+    if($_SESSION["status_code"] == POST_FOUND)
+    {
+        $postID = $post['ID'];
+    }
+}
 
 ?>
 
@@ -17,7 +44,7 @@ require "lib/config.php";
     <link rel="stylesheet" href="<?=$_SERVER['CLIENT_PATH']?>/assets/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
     <link rel="stylesheet" href="<?=$_SERVER['CLIENT_PATH']?>/assets/css/main.css">
-    <title>Hello, world!</title>
+    <title>Create New Post</title>
 </head>
 <body>
 
@@ -25,9 +52,12 @@ require "lib/config.php";
     include $_SERVER['SERVER_PATH'] . "/header.php";
 ?>
 
-    <div class="container">
-    <h1>Hello, world!</h1>
-    </div>
+    <div class="container-fluid">
+    <h1><?=$post['Title']?></h1>
+    <hr/>
+    <?=$purifier->purify($post['Content'])?>
+</div>
+
 
 <?php
     include $_SERVER['SERVER_PATH'] . "/footer.php";

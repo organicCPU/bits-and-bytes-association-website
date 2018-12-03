@@ -6,15 +6,29 @@ require "../lib/config.php";
 require_once $_SERVER['SERVER_PATH'] . "lib/auth.php";
 require_once $_SERVER['SERVER_PATH'] . "lib/process.php";
 
-if(!empty($_POST))
+if ($_SESSION['create'] != 1 && $_SESSION['admin'] != 1)
 {
-    sanitizePOST();
-
+    exit();
 }
-else
+
+if (!empty($_GET))
 {
-    createPost();
+    $action = filter_input(INPUT_GET, "action", FILTER_SANITIZE_SPECIAL_CHARS);
+    $id = filter_input(INPUT_GET, "id", FILTER_SANITIZE_NUMBER_INT);
+
+    $post = pullPost($id);
+    $_SESSION["status_code"] = validatePostPermissions($post);
     
+    if($_SESSION["status_code"] == POST_FOUND)
+    {
+        $postID = $post['ID'];
+    }
+
+    if((!empty($_POST) && isset($postID)))
+    {
+        updatePost($postID, $_POST['title'], $_POST['content'], $_POST['category']);
+        $post = pullPost($id);
+    }
 }
 
 ?>
@@ -28,6 +42,7 @@ else
     <link rel="icon" href="<?=$_SERVER['CLIENT_PATH']?>/assets/img/icons/favicon.ico" type="image/x-icon">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="<?=$_SERVER['CLIENT_PATH']?>/assets/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
     <link rel="stylesheet" href="<?=$_SERVER['CLIENT_PATH']?>/assets/css/main.css">
     <title>Create New Post</title>
 </head>
@@ -54,7 +69,7 @@ else
         <label for="selectCategory">Category:</label>
         <select class="form-control" name="category" id="selectCategory">
         <?php foreach (getCategories()[1] as $category) : ?>
-            <option><?=$category[0]?></option>
+            <option value=<?=$category[0]?>><?=$category[1]?></option>
         <?php endforeach ?>
         </select>
     </div>

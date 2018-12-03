@@ -17,11 +17,13 @@ define("NAME_MIN_LENGTH", 2);
     const SERVER_ERROR_PREFIX = 5;
 
     const OK = 200;
-    const POST_OK = 211;
+    const POST_ADD_OK = 211;
+    const POST_FOUND = 212;
     const LOGIN_OK = 281;
     const REGISTRATION_OK = 291;
 
     const UNAUTHORIZED = 401;
+    const POST_NOT_FOUND = 414;
     const BAD_LOGIN = 481;
     const BAD_USERNAME = 490;
     const USERNAME_TAKEN = 491;
@@ -93,6 +95,22 @@ function validateUser($username, $password, $password2, $email, $firstname, $las
     return $result;
 }
 
+function validatePostPermissions($post)
+{
+    $code = POST_FOUND;
+
+    if(empty($post))
+    {   
+        $code = POST_NOT_FOUND;
+    }
+    else if ($post['OwnerID'] != getUsers($_SESSION['login_user'])[1][0]['UID'] && !$_SESSION['admin'])
+    {
+        $code = UNAUTHORIZED;
+    }
+
+    return $code;
+}
+
 function validatePost()
 {
 
@@ -105,7 +123,7 @@ function validateCategory()
 
 function validateUsergroup()
 {
-    
+
 }
 
 function statusCodeToText($status)
@@ -153,8 +171,10 @@ function statusCodeToText($status)
             $string = "That email has already been taken. Please enter a new email.";
             break;
         case INTERNAL_SERVER_ERROR:
-        default:
             $string = "Internal server error. Please try again later.";
+            break;
+        default:
+            $string = "Undocumented status. Status code: " . $status;
             break;
     }
 
@@ -275,11 +295,16 @@ function getUsers($username = null)
 function updateUser($username)
 {
     global $db;
+
+    $constraints = validateUser();
+
+    return $constraints;
 }
 
-function deleteUser($username)
+function deleteUser($id)
 {
     global $db;
+    
 }
 
 function createUser($username, $password, $password2, $email, $firstname, $lastname, $usergroup)
@@ -338,24 +363,67 @@ function createCategory($name, $showInNav)
     $firstname = filter_var($firstname, FILTER_SANITIZE_SPECIAL_CHARS);
     $lastname = filter_var($lastname, FILTER_SANITIZE_SPECIAL_CHARS);
     $content = filter_var($content, FILTER_SANITIZE_SPECIAL_CHARS);
+
+    $constraints = validateCategory();
+    //Do 
+    try
+    {
+	    $query = "INSERT INTO posts (title, content, OwnerID, CategoryID, ShowInCategoryNav) VALUES (:title, :content, :OwnerID, :category, :nav)";
+        $statement = $db->prepare($query);
+        $statement->bindValue(':title', $title, PDO::PARAM_STR);
+	    $statement->bindValue(':content', $content, PDO::PARAM_STR);
+        $statement->bindValue(':OwnerID', $userID, PDO::PARAM_INT);
+        $statement->bindValue(':CategoryID', $category, PDO::PARAM_INT);
+        $statement->bindValue(':nav', $showInNav, PDO::PARAM_BOOL);
+        $statement -> execute();
+    }
+    catch (PDOException $e)
+    {
+        if ($e->errorInfo[1] == 1062) //if a UNIQUE constraint was violated
+        {
+            $constraints = substr($e->errorInfo[2], strpos($e->errorInfo[2], "for key", -18) + 9, -1); //might not be able to be attacked in email field
+
+            if($constraints === "Username")
+            {
+                $constraints = UNIQUE_VIOLATION_USERNAME;
+            }
+            else if ($constraints === "Email")
+            {
+                $constraints = UNIQUE_VIOLATION_EMAIL;
+            }
+        }
+    }
+
+    return $constraints;
 }
 
 function getCategories($name = null)
 {
     global $db;
 
-    $cols = ['Name', 'ShowInHeader'];
+    $cols = ['CategoryID', 'Name', 'ShowInHeader'];
 
-    $query = "SELECT Name, ShowInHeader FROM Categories"; 
+    if ($name == null)
+    {
+        $query = "SELECT CategoryID, Name, ShowInHeader FROM Categories"; 
+    }
+    else
+    {
+        $query = "SELECT CategoryID, Name, ShowInHeader FROM Categories WHERE Name = :name"; 
+    }
     $statement = $db->prepare($query);
+    $statement -> bindValue(':name', $name, PDO::PARAM_STR);
     $statement -> execute();
     $rows = $statement->fetchAll();
+
     return [$cols, $rows];
 }
 
 function updateCategory($name)
 {
     global $db;
+
+    $constraints = validateCategory();
 }
 
 function deleteCategory($name)
@@ -363,41 +431,74 @@ function deleteCategory($name)
     global $db;
 }
 
-function createPost($title, $content, $username, $category, $showInNav = false)
+//Posts
+function createPost($title, $content, $usertoken, $category, $showInNav = 0)
 {
     global $db;
 
     $title = filter_var($title, FILTER_SANITIZE_SPECIAL_CHARS);
-    $username = filter_var($username, FILTER_SANITIZE_SPECIAL_CHARS);
-    $content = filter_var($content, FILTER_SANITIZE_SPECIAL_CHARS);
-    $category = filter_var($category, FILTER_SANITIZE_SPECIAL_CHARS);
-    $showInNav = filter_var($showInNav, FILTER_SANITIZE_NUMBER_INT);
+
+    //$content = filter_var($content, FILTER_SANITIZE_SPECIAL_CHARS); if sanitized, breaks WYSIWYG
+    $category = filter_var($category, FILTER_SANITIZE_NUMBER_INT);
+    //$showInNav = filter_var($showInNav, FILTER_SANITIZE_NUMBER_INT);
     
     //Resolve Username to ID
-    $userID = getUsers($_SESSION['login_user'])[1][0]['UID'];
+    $userID = getUsers($usertoken)[1][0]['UID'];
     //Resolve CategoryID to ID
-    $categoryID = getCategory();
+    //$categoryID = getCategories($category);
+    $constraints = validatePost();
+    //Do 
+    //try
+    //{
+	    $query = "INSERT INTO posts (title, content, OwnerID, CategoryID, ShowInCategoryNav) VALUES (:title, :content, :OwnerID, :category, :nav)";
+        $statement = $db->prepare($query);
+        $statement->bindValue(':title', $title, PDO::PARAM_STR);
+	    $statement->bindValue(':content', $content, PDO::PARAM_STR);
+        $statement->bindValue(':OwnerID', $userID, PDO::PARAM_INT);
+        $statement->bindValue(':category', $category, PDO::PARAM_INT);
+        $statement->bindValue(':nav', $showInNav, PDO::PARAM_BOOL);
+        $statement -> execute();
+    //}
+    //catch (PDOException $e)
+    //{
+        //if ($e->errorInfo[1] == 1062) //if a UNIQUE constraint was violated
+        //{
+        //    $constraints = substr($e->errorInfo[2], strpos($e->errorInfo[2], "for key", -18) + 9, -1); //might not be able to be attacked in email field
 
-    //Do Query
-	$query = "INSERT INTO posts (title, content, OwnerID, CategoryID, ShowInCategoryNav) VALUES (:title, :content, :OwnerID, :category, :nav)";
-    $statement = $db->prepare($query);
-    $statement->bindValue(':title', $title, PDO::PARAM_STR);
-	$statement->bindValue(':content', $content, PDO::PARAM_STR);
-    $statement->bindValue(':OwnerID', $userID, PDO::PARAM_INT);
-    $statement->bindValue(':CategoryID', $categoryID, PDO::PARAM_INT);
-    $statement->bindValue(':nav', $showInNav, PDO::PARAM_BOOL);
-	$statement -> execute();
-    header("Location: index.php");
-    exit();
+        //    if($constraints === "Username")
+        //    {
+                //$constraints = UNIQUE_VIOLATION_USERNAME;
+        //    }
+        //    else if ($constraints === "Email")
+         //   {
+         //       $constraints = UNIQUE_VIOLATION_EMAIL;
+         //   }
+        //}
+    //}
+
+    return $constraints;
 }
 
-function getPosts($OwnerID = null)
+function pullPost($postID)
+{
+    global $db;
+
+    $query = "SELECT ID, Title, Content, Date, OwnerID, CategoryID FROM Posts WHERE ID = :PostID";
+    $statement = $db->prepare($query);
+    $statement -> bindValue(':PostID', $postID, PDO::PARAM_INT);
+    $statement -> execute();
+    $row = $statement->fetch();
+
+    return $row;
+}
+
+function getPosts($ownerID = null)
 {
     global $db;
 
     $cols = ['Title', 'Date', 'OwnerID', 'CategoryID'];
 
-    if($OwnerID == null)
+    if($ownerID == null)
     {
         $query = "SELECT Title, Date, OwnerID, CategoryID FROM Posts";
         $statement = $db->prepare($query);
@@ -406,32 +507,38 @@ function getPosts($OwnerID = null)
     {
         $query = "SELECT Title, Date, OwnerID, CategoryID FROM Posts WHERE OwnerID = :OwnerID";
         $statement = $db->prepare($query);
-        $statement -> bindValue(':OwnerID', $OwnerID, PDO::PARAM_INT);
+        $statement -> bindValue(':OwnerID', $ownerID, PDO::PARAM_INT);
     }
     $statement -> execute();
     $rows = $statement->fetchAll();
     return [$cols, $rows];
 }
 
-function updatePost($post)
+function updatePost($id, $title, $content, $category, $showInNav = 0)
 {   
     global $db;
 
-	$query = "UPDATE blog SET content = :content, title = :title, time = NOW() WHERE id = :id";
-	$statement = $db->prepare($query);
-	$statement->bindValue(':id', $post['id']);
-	$statement->bindValue(':content', $post['content']);
-	$statement->bindValue(':title', $post['title']);
-	$statement -> execute();
+    $constraints = validatePost();
+
+	$query = "UPDATE Posts SET title = :title, content = :content, Date = NOW(), CategoryID = :category, showInCategoryNav = :nav WHERE id = :id";
+    $statement = $db->prepare($query);
+    $statement->bindValue(':id', $id, PDO::PARAM_INT);
+    $statement->bindValue(':title', $title, PDO::PARAM_STR);
+    $statement->bindValue(':content', $content, PDO::PARAM_STR);
+    $statement->bindValue(':category', $category, PDO::PARAM_INT);
+    $statement->bindValue(':nav', $showInNav, PDO::PARAM_BOOL);
+    $statement -> execute();
+
+    return $constraints;
 }
 
-function deletePost($post)
+function deletePost($id)
 {
     global $db;
 
-	$query = "DELETE FROM blog WHERE id = :id";
+	$query = "DELETE FROM Posts WHERE id = :id";
 	$statement = $db->prepare($query);
-	$statement->bindValue(':id', $post);
+	$statement->bindValue(':id', $id, PDO::PARAM_INT);
 	$statement -> execute();
 }
 
@@ -447,6 +554,38 @@ function createUsergroup()
     $firstname = filter_var($firstname, FILTER_SANITIZE_SPECIAL_CHARS);
     $lastname = filter_var($lastname, FILTER_SANITIZE_SPECIAL_CHARS);
     $content = filter_var($content, FILTER_SANITIZE_SPECIAL_CHARS);
+
+    $constraints = validateUsergroup();
+    //Do 
+    try
+    {
+	    $query = "INSERT INTO posts (title, content, OwnerID, CategoryID, ShowInCategoryNav) VALUES (:title, :content, :OwnerID, :category, :nav)";
+        $statement = $db->prepare($query);
+        $statement->bindValue(':title', $title, PDO::PARAM_STR);
+	    $statement->bindValue(':content', $content, PDO::PARAM_STR);
+        $statement->bindValue(':OwnerID', $userID, PDO::PARAM_INT);
+        $statement->bindValue(':CategoryID', $category, PDO::PARAM_INT);
+        $statement->bindValue(':nav', $showInNav, PDO::PARAM_BOOL);
+        $statement -> execute();
+    }
+    catch (PDOException $e)
+    {
+        if ($e->errorInfo[1] == 1062) //if a UNIQUE constraint was violated
+        {
+            $constraints = substr($e->errorInfo[2], strpos($e->errorInfo[2], "for key", -18) + 9, -1); //might not be able to be attacked in email field
+
+            if($constraints === "Username")
+            {
+                $constraints = UNIQUE_VIOLATION_USERNAME;
+            }
+            else if ($constraints === "Email")
+            {
+                $constraints = UNIQUE_VIOLATION_EMAIL;
+            }
+        }
+    }
+
+    return $constraints;
 }
 
 function getUsergroups()
@@ -466,6 +605,10 @@ function getUsergroups()
 function updateUsergroup($usergroup)
 {
     global $db;
+
+    $constraints = validateUsergroup();
+
+    return $constraints;
 }
 
 function deleteUsergroup($usergroup)

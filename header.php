@@ -52,7 +52,6 @@ function generateUserLoginDropdown()
     }
     ?>
                     </div>
-            </div>
             <?php
 }
 
@@ -67,7 +66,7 @@ function generateUserLoginDropdown()
             </span>
         </button>
         <!-- Modal -->
-        <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginLabel" aria-hidden="true">
+        <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                 <div class="modal-header">
@@ -82,13 +81,13 @@ function generateUserLoginDropdown()
                             <div class="input-group-prepend form-group">
                                 <span class="input-group-text" id="login-username">Username:</span>
                             </div>
-                            <input type="text" class="form-control" name="username" id="usr" placeholder="Username" aria-label="Username" aria-describedby=""> <!--Fix the formatting of this.-->
+                            <input type="text" class="form-control" name="username" id="usr" placeholder="Username" aria-label="Username" aria-describedby="usr"> <!--Fix the formatting of this.-->
                         </div>
                         <div class="input-group mb-3">
                             <div class="input-group-prepend form-group">
                                 <span class="input-group-text" id="login-password">Password:</span>
                             </div>
-                            <input type="password" class="form-control" name="field" placeholder="Password" aria-label="Password" aria-describedby="">
+                            <input type="password" class="form-control" id="password" name="field" placeholder="Password" aria-label="Password" aria-describedby="password">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -98,10 +97,9 @@ function generateUserLoginDropdown()
                     </form>
                 </div>
             </div>
-        </form>
         </div>
         
-        <div class="collapse navbar-collapse navbar" id="navbarSupportedContent">
+        <div class="offcanvas-collapse navbar-collapse hide navbar collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
                     <a class="nav-link" href="<?=$_SERVER['CLIENT_PATH']?>">
@@ -132,10 +130,18 @@ function generateUserLoginDropdown()
                     </div>
                 </li>
             </ul>
-            <?=generateUserLoginDropdown()?>
+            <form class="form-inline my-2 my-lg-0" method="GET" action="<?=$_SERVER['CLIENT_PATH']?>/search.php">
+                <input class="form-control mr-sm-2" name="query" type="text" placeholder="Search" aria-label="Search" data-cip-id="cIPJQ342845639">
+                <button class="btn btn-outline-success my-2 my-sm-0 fas fa-search" type="submit"></button>
+            </form>
         </div>
     </nav>
 </header>
+<div class="nav-scroller bg-white shadow-sm">
+      <nav class="nav nav-underline">
+      <?=generateUserLoginDropdown()?>
+      </nav>
+    </div>
 <?php if (isset($_SESSION['status_code'])) : ?>
 <?=generateAlert($_SESSION['status_code'])?>
 <?php endif?>
